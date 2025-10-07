@@ -2,9 +2,26 @@ package main
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/gocolly/colly/v2"
 )
+
+// storing diff possible names of the top 10 nifty 50 companies as a reg exp
+var companyRegex = regexp.MustCompile(
+	fmt.Sprintf(`(?i)\b(%s)\b`, strings.Join([]string{
+		"Reliance Industries", "Reliance", "RIL", "Tata Consultancy Services",
+		"TCS", "Tata Consultancy", "HDFC Bank", "HDFC", "ICICI Bank", "ICICI",
+		"Bharti Airtel", "Airtel", "State Bank of India", "SBI", "Infosys",
+		"Life Insurance Corporation", "LIC", "Hindustan Unilever", "HUL", "ITC",
+	}, "|")),
+)
+
+// function to match the input title of news to the selected companies using regex
+func contains(title string) bool {
+	return companyRegex.MatchString(title)
+}
 
 func main() {
 
@@ -28,7 +45,14 @@ func main() {
 
 	c.OnXML("//item", func(e *colly.XMLElement) {
 		title := e.ChildText("//title")
-		fmt.Println(title)
+		if contains(title) {
+			fmt.Printf("\n\n")
+			fmt.Println(title)
+			desc := e.ChildText("description")
+			fmt.Printf("Desc: %s\n", desc)
+			time := e.ChildText("pubDate")
+			fmt.Printf("Time : %s\n", time)
+		}
 	})
 
 	urls := []string{
