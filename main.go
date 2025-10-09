@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -29,6 +30,29 @@ var companyRegex = regexp.MustCompile(
 // function to match the input title of news to the selected companies using regex
 func contains(title string) bool {
 	return companyRegex.MatchString(title)
+}
+
+// func to convert the time to RFC1123Z
+func convertToRFC1123Z(timeStr string) (time.Time, error) {
+	formats := []string{
+		time.RFC1123,     // "Mon, 02 Jan 2006 15:04:05 MST"
+		time.RFC1123Z,    // "Mon, 02 Jan 2006 15:04:05 -0700"
+		time.RFC3339,     // "2006-01-02T15:04:05Z07:00"
+		time.RFC822,      // "02-Jan-06 15:04 MST"
+		time.RFC822Z,     // "02-Jan-06 15:04 -0700"
+		time.RFC3339Nano, // "2006-01-02T15:04:05.999999999Z07:00"
+		time.ANSIC,       // "Mon Jan _2 15:04:05 2006"
+		"Mon, 2 Jan 2006 15:04:05 -0700",
+		"2006-01-02 15:04:05",
+	}
+
+	for _, format := range formats {
+		x, err := time.Parse(format, timeStr)
+		if err == nil {
+			return x, nil
+		}
+	}
+	return time.Time{}, errors.New("error parsing")
 }
 
 func main() {
@@ -64,17 +88,17 @@ func main() {
 		fmt.Printf("\n\nVisiting url: %s \n", e.URL.String())
 	})
 
+	prevTime, err := time.Parse(time.RFC1123Z, prev.Time)
+	if err != nil {
+		fmt.Printf("Error creating prevTime")
+	}
+
 	c.OnXML("//item", func(e *colly.XMLElement) {
 		title := e.ChildText("//title")
 		sctime := e.ChildText("pubDate")
-		currTime, err := time.Parse(time.RFC1123Z, sctime)
+		currTime, err := convertToRFC1123Z((sctime))
 		if err != nil {
 			fmt.Printf("Error creating currTime")
-		}
-
-		prevTime, err := time.Parse(time.RFC1123Z, prev.Time)
-		if err != nil {
-			fmt.Printf("Error creating prevTime")
 		}
 
 		if currTime.After(prevTime) {
