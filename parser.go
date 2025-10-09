@@ -23,6 +23,7 @@ func ParseAndSave(url string) error {
 
 	var articles []Article
 	data, _ := os.ReadFile("articles.json")
+	//json to go slice
 	json.Unmarshal(data, &articles)
 
 	articles = append(articles, Article{
@@ -31,7 +32,7 @@ func ParseAndSave(url string) error {
 		Content:   article.TextContent,
 		ScrapedAt: time.Now(),
 	})
-
+	//go slice to json
 	data, _ = json.MarshalIndent(articles, "", "  ")
 	os.WriteFile("articles.json", data, 0644)
 	fmt.Printf("✓ Saved article: %s (Total: %d)\n", article.Title, len(articles))
