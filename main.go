@@ -52,15 +52,6 @@ func main() {
 			fmt.Printf("Desc: %s\n", desc)
 			time := e.ChildText("pubDate")
 			fmt.Printf("Time : %s\n", time)
-			//calling the parse and save function
-			link := e.ChildText("link")
-			if link != "" {
-				fmt.Printf("Processing URL: %s\n", link)
-				err := ParseAndSave(link)
-				if err != nil {
-					fmt.Printf("Error parsing article: %v\n", err)
-				}
-			}
 		}
 	})
 
