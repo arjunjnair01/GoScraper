@@ -86,6 +86,15 @@ func main() {
 				fmt.Printf("Time : %s\n", sctime)
 			}
 		}
+		//calling the parse and save function
+		link := e.ChildText("link")
+		if link != "" {
+			fmt.Printf("Processing URL: %s\n", link)
+			err := ParseAndSave(link)
+			if err != nil {
+				fmt.Printf("Error parsing article: %v\n", err)
+			}
+		}
 	})
 
 	c.OnScraped(func(r *colly.Response) {
