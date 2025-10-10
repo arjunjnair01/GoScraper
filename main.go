@@ -69,6 +69,9 @@ func main() {
 	json.Unmarshal(byteData, &prev)
 	fmt.Printf("PREV TIME: %s\n\n", prev.Time)
 
+	//flag
+	var stop bool
+
 	//creating collector
 	c := colly.NewCollector(
 		colly.AllowedDomains(
@@ -86,6 +89,7 @@ func main() {
 	})
 	c.OnRequest(func(e *colly.Request) {
 		fmt.Printf("\n\nVisiting url: %s \n", e.URL.String())
+		stop = false
 	})
 
 	prevTime, err := time.Parse(time.RFC1123Z, prev.Time)
@@ -94,6 +98,9 @@ func main() {
 	}
 
 	c.OnXML("//item", func(e *colly.XMLElement) {
+		if stop {
+			return
+		}
 		title := e.ChildText("//title")
 		sctime := e.ChildText("pubDate")
 		currTime, err := convertToRFC1123Z((sctime))
@@ -118,6 +125,8 @@ func main() {
 					}
 				}
 			}
+		} else {
+			stop = true
 		}
 
 	})
@@ -131,7 +140,6 @@ func main() {
 		if err != nil {
 			fmt.Println("Error creating a file")
 		}
-
 	})
 
 	urls := []string{
